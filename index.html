@@ -227,7 +227,17 @@
             
             filterButtons.forEach(btn => {
                 const cat = btn.dataset.filter;
-                if(cat !== 'all') btn.innerText = t.filter[cat];
+                if(cat !== 'all') {
+                    btn.innerText = t.filter[cat];
+                }
+                // Highlight active button
+                if(cat === currentFilter) {
+                    btn.classList.remove('bg-slate-900/80', 'border', 'border-slate-800', 'text-slate-400');
+                    btn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30');
+                    btn.classList.add('bg-slate-900/80', 'border', 'border-slate-800', 'text-slate-400');
+                }
             });
 
             const filtered = codes.map(item => ({
