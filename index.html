@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرجع کدهای وضعیت HTTP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        #p5-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950/80 text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-500 selection:text-white">
+    <!-- p5.js Canvas Background -->
+    <div id="p5-background"></div>
+
+    <div class="max-w-6xl mx-auto px-4 py-12 relative z-10">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2 drop-shadow-md">کدهای وضعیت HTTP</h1>
+            <p class="text-slate-300 max-w-xl mx-auto drop-shadow">مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی، از اطلاعاتی (1xx) تا خطاهای سرور (5xx).</p>
+        </header>
+
+        <!-- Controls: Search & Filters -->
+        <div class="flex flex-col md:flex-row gap-4 mb-8 justify-between items-center backdrop-blur-md bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 shadow-xl">
+            <!-- Search -->
+            <div class="w-full md:w-96 relative">
+                <input type="text" id="searchInput" placeholder="جستجو (مثل 429، درخواست زیاد...)" 
+                    class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-right">
+            </div>
+
+            <!-- Category Filters -->
+            <div class="flex flex-wrap gap-2 justify-center" id="filterButtons">
+                <button data-filter="all" class="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white transition-colors shadow-lg shadow-blue-600/30">همه</button>
+                <button data-filter="1xx" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white transition-colors">۱xx (اطلاعاتی)</button>
+                <button data-filter="2xx" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white transition-colors">۲xx (موفقیت)</button>
+                <button data-filter="3xx" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white transition-colors">۳xx (تغییر مسیر)</button>
+                <button data-filter="4xx" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white transition-colors">۴xx (خطای کلاینت)</button>
+                <button data-filter="5xx" class="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-white transition-colors">۵xx (خطای سرور)</button>
+            </div>
+        </div>
+
+        <!-- Codes Grid -->
+        <div id="codesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Populated via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20 text-slate-500 backdrop-blur-md bg-slate-900/40 rounded-2xl border border-slate-800/50">
+            کد خطایی با این مشخصات پیدا نشد.
+        </div>
+    </div>
+
+    <script>
+        // p5.js Neural Network / Particles Background
+        let particles = [];
+        function setup() {
+            let canvas = createCanvas(windowWidth, windowHeight);
+            canvas.parent('p5-background');
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: random(width),
+                    y: random(height),
+                    vx: random(-0.5, 0.5),
+                    vy: random(-0.5, 0.5),
+                    size: random(2, 4)
+                });
+            }
+        }
+
+        function draw() {
+            background(10, 15, 30, 255); // Solid dark base to avoid accumulation
+            
+            stroke(51, 65, 85, 80);
+            strokeWeight(1);
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    let d = dist(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
+                    if (d < 120) {
+                        line(particles[i].x, particles[i].y, particles[j].x, particles[j].y);
+                    }
+                }
+            }
+
+            noStroke();
+            fill(59, 130, 246, 180);
+            for (let p of particles) {
+                ellipse(p.x, p.y, p.size);
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > width) p.vx *= -1;
+                if (p.y < 0 || p.y > height) p.vy *= -1;
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+
+        // Data & Logic
+        const codes = [
+            { code: 100, name: "ادامه دارد", en: "Continue", category: "1xx", desc: "سرور هدرهای درخواست را دریافت کرده و کلاینت باید ارسال بدنه درخواست را ادامه دهد." },
+            { code: 101, name: "تغییر پروتکل‌ها", en: "Switching Protocols", category: "1xx", desc: "درخواست‌کننده از سرور خواسته پروتکل را تغییر دهد و سرور تایید کرده است." },
+            { code: 102, name: "در حال پردازش", en: "Processing", category: "1xx", desc: "درخواست WebDAV ممکن است شامل عملیات زیادی باشد؛ یعنی سرور درخواست را دریافت کرده و پردازش می‌کند." },
+            { code: 103, name: "راهنمایی‌های اولیه", en: "Early Hints", category: "1xx", desc: "برای بازگرداندن برخی هدرهای پاسخ قبل از پیام نهایی HTTP استفاده می‌شود." },
+
+            { code: 200, name: "موفقیت‌آمیز (OK)", en: "OK", category: "2xx", desc: "پاسخ استاندارد برای درخواست‌های موفق HTTP." },
+            { code: 201, name: "ایجاد شد", en: "Created", category: "2xx", desc: "درخواست با موفقیت انجام شد و منجر به ایجاد یک منبع جدید گردید." },
+            { code: 202, name: "پذیرفته شد", en: "Accepted", category: "2xx", desc: "درخواست برای پردازش پذیرفته شده، اما پردازش کامل نشده است." },
+            { code: 203, name: "اطلاعات غیرمعتبر", en: "Non-Authoritative Information", category: "2xx", desc: "اطلاعات متای بازگردانده شده دقیقا همان چیزی نیست که از سرور مبدا در دسترس است." },
+            { code: 204, name: "بدون محتوا", en: "No Content", category: "2xx", desc: "سرور درخواست را با موفقیت پردازش کرده اما هیچ محتوایی برنمی‌گرداند." },
+            { code: 205, name: "بازنشانی محتوا", en: "Reset Content", category: "2xx", desc: "سرور درخواست را پردازش کرده و مایل است کلاینت نمایش سند را ریست کند." },
+            { code: 206, name: "محتوای جزئی", en: "Partial Content", category: "2xx", desc: "سرور تنها بخش از منبع را به دلیل هدر محدوده (Range) ارسال کرده است." },
+            { code: 207, name: "چندین وضعیت", en: "Multi-Status", category: "2xx", desc: "بدنه پیام شامل یک پیام XML است که می‌تواند حاوی کدهای پاسخ جداگانه باشد." },
+            { code: 208, name: "از قبل گزارش شده", en: "Already Reported", category: "2xx", desc: "اعضای یک اتصال DAV قبلاً در بخش قبلی پاسخ ذکر شده‌اند." },
+            { code: 226, name: "IM استفاده شد", en: "IM Used", category: "2xx", desc: "سرور درخواست یک منبع را اجابت کرده و پاسخ حاصل دستکاری نمونه‌ها روی نمونه فعلی است." },
+
+            { code: 300, name: "انتخاب‌های متعدد", en: "Multiple Choices", category: "3xx", desc: "گزینه‌های متعددی برای منبع وجود دارد که کلاینت می‌تواند یکی را انتخاب کند." },
+            { code: 301, name: "انتقال دائم", en: "Moved Permanently", category: "3xx", desc: "این درخواست و تمامی درخواست‌های آینده باید به آدرس جدید هدایت شوند." },
+            { code: 302, name: "یافت شد (انتقال موقت)", en: "Found", category: "3xx", desc: "انتقال موقت رایج؛ به کلاینت می‌گوید موقتاً آدرس دیگری را بررسی کند." },
+            { code: 303, name: "مشاهده دیگر", en: "See Other", category: "3xx", desc: "پاسخ درخواست را می‌توان تحت یک آدرس دیگر با متد GET پیدا کرد." },
+            { code: 304, name: "اصلاح نشده", en: "Not Modified", category: "3xx", desc: "منبع از زمان نسخه مشخص شده توسط کلاینت تغییری نکرده است." },
+            { code: 305, name: "استفاده از پروکسی", en: "Use Proxy", category: "3xx", desc: "منبع درخواستی فقط از طریق پروکسی قابل دسترسی است که آدرس آن مشخص شده." },
+            { code: 307, name: "تغییر مسیر موقت", en: "Temporary Redirect", category: "3xx", desc: "درخواست باید با آدرس دیگری تکرار شود، اما درخواست‌های آینده همچنان از آدرس اصلی استفاده کنند." },
+            { code: 308, name: "تغییر مسیر دائم", en: "Permanent Redirect", category: "3xx", desc: "درخواست و تمامی درخواست‌های بعدی باید با آدرس دیگری تکرار شوند." },
+
+            { code: 400, name: "درخواست نامعتبر", en: "Bad Request", category: "4xx", desc: "سرور به دلیل خطای کلاینت (مانند فرمت اشتباه) نمی‌تواند درخواست را پردازش کند." },
+            { code: 401, name: "عدم احراز هویت", en: "Unauthorized", category: "4xx", desc: "احراز هویت مورد نیاز است اما انجام نشده یا نامعتبر است." },
+            { code: 402, name: "نیاز به پرداخت", en: "Payment Required", category: "4xx", desc: "برای استفاده از این سرویس پرداخت مالی لازم است." },
+            { code: 403, name: "دسترسی ممنوع", en: "Forbidden", category: "4xx", desc: "درخواست معتبر است اما سرور به دلیل نداشتن مجوز اجازه دسترسی نمی‌دهد." },
+            { code: 404, name: "یافت نشد", en: "Not Found", category: "4xx", desc: "منبع درخواستی روی سرور وجود ندارد یا پیدا نشد." },
+            { code: 405, name: "متد غیرمجاز", en: "Method Not Allowed", category: "4xx", desc: "متد ارسال شده (مثل POST یا GET) برای این منبع پشتیبانی نمی‌شود." },
+            { code: 406, name: "غیرقابل قبول", en: "Not Acceptable", category: "4xx", desc: "منبع نمی‌تواند محتوایی بر اساس هدرهای Accept کلاینت تولید کند." },
+            { code: 407, name: "نیاز به احراز هویت پروکسی", en: "Proxy Auth Required", category: "4xx", desc: "کلاینت باید ابتدا با پروکسی احراز هویت کند." },
+            { code: 408, name: "پایان زمان درخواست", en: "Request Timeout", category: "4xx", desc: "سرور در انتظار ارسال درخواست از سوی کلاینت معطل شد و تایم‌اوت داد." },
+            { code: 409, name: "تضاد (Conflict)", en: "Conflict", category: "4xx", desc: "درخواست به دلیل مغایرت با وضعیت فعلی منبع قابل پردازش نیست." },
+            { code: 410, name: "از دست رفته (Gone)", en: "Gone", category: "4xx", desc: "منبع درخواستی دیگر وجود ندارد و برای همیشه پاک شده است." },
+            { code: 411, name: "نیاز به تعیین طول", en: "Length Required", category: "4xx", desc: "طول بدنه درخواست مشخص نشده و سرور آن را الزامی می‌داند." },
+            { code: 412, name: "شکست پیش‌شرط", en: "Precondition Failed", category: "4xx", desc: "سرور پیش‌شرط‌هایی که کلاینت در هدر فرستاده را برآورده نمی‌کند." },
+            { code: 413, name: "حجم پیام بیش از حد بزرگ", en: "Payload Too Large", category: "4xx", desc: "حجم داده‌های ارسالی کلاینت بیشتر از حد مجاز سرور است." },
+            { code: 414, name: "آدرس URI بسیار طولانی", en: "URI Too Long", category: "4xx", desc: "طول آدرس اینترنتی درخواست شده از حد مجاز سرور بیشتر است." },
+            { code: 415, name: "نوع رسانه پشتیبانی نمی‌شود", en: "Unsupported Media Type", category: "4xx", desc: "فرمت داده‌های ارسالی (Content-Type) برای سرور شناخته شده نیست." },
+            { code: 416, name: "محدوده درخواست نامعتبر", en: "Range Not Satisfiable", category: "4xx", desc: "بخش درخواستی از فایل قابل ارائه توسط سرور نیست." },
+            { code: 417, name: "شکست در انتظار (Expectation)", en: "Expectation Failed", category: "4xx", desc: "انتظار مشخص شده در هدر Expect توسط سرور قابل برآورده شدن نیست." },
+            { code: 418, name: "من یک قوری هستم!", en: "I'm a teapot", category: "4xx", desc: "یک شوخی استاندارد اینترنت (RFC 2324)؛ سرور از دم کردن قهوه امتناع می‌کند چون قوری است." },
+            { code: 421, name: "درخواست هدایت‌شده اشتباه", en: "Misdirected Request", category: "4xx", desc: "درخواست به سروری ارسال شده که توانایی پاسخگویی به آن را ندارد." },
+            { code: 422, name: "موجودیت غیرقابل پردازش", en: "Unprocessable Entity", category: "4xx", desc: "درخواست از نظر نگارشی درست است اما به دلیل خطای معنایی قابل پردازش نیست (رایج در API)." },
+            { code: 423, name: "قفل شده", en: "Locked", category: "4xx", desc: "منبعی که به آن دسترسی دارید قفل است." },
+            { code: 424, name: "وابستگی ناموفق", en: "Failed Dependency", category: "4xx", desc: "درخواست به دلیل شکست درخواست قبلی متوقف شد." },
+            { code: 425, name: "خیلی زود", en: "Too Early", category: "4xx", desc: "سرور تمایلی به ریسک پردازش درخواستی که ممکن است تکراری باشد ندارد." },
+            { code: 426, name: "نیاز به ارتقاء پروتکل", en: "Upgrade Required", category: "4xx", desc: "کلاینت باید پروتکل خود را ارتقاء دهد تا سرور درخواست را انجام دهد." },
+            { code: 428, name: "نیاز به پیش‌شرط", en: "Precondition Required", category: "4xx", desc: "سرور نیازمند شرطی‌بودن درخواست است." },
+            { code: 429, name: "درخواست‌های بیش از حد (Rate Limit)", en: "Too Many Requests", category: "4xx", desc: "کاربر در بازه زمانی مشخص درخواست‌های زیادی ارسال کرده است (محدودیت نرخ)." },
+            { code: 431, name: "هدرهای درخواست بیش از حد بزرگ", en: "Header Fields Too Large", category: "4xx", desc: "اندازه فیلدهای هدر درخواست از حد مجاز سرور بیشتر است." },
+            { code: 451, name: "غیرقابل دسترس به دلایل قانونی", en: "Unavailable For Legal Reasons", category: "4xx", desc: "دستور قانونی برای مسدودسازی دسترسی به این منبع صادر شده است." },
+
+            { code: 500, name: "خطای داخلی سرور", en: "Internal Server Error", category: "5xx", desc: "خطای عمومی؛ سرور با حالت غیرمنتظره‌ای مواجه شده و جزئیات خاص تری وجود ندارد." },
+            { code: 501, name: "پیاده‌سازی نشده", en: "Not Implemented", category: "5xx", desc: "سرور متد درخواست را نمی‌شناسد یا توانایی انجام آن را ندارد." },
+            { code: 502, name: "درگاه بد (Bad Gateway)", en: "Bad Gateway", category: "5xx", desc: "سرور به عنوان پروکسی یا گیت‌وی پاسخ نامعتبری از سرور بالادستی دریافت کرده است." },
+            { code: 503, name: "سرویس در دسترس نیست", en: "Service Unavailable", category: "5xx", desc: "سرور به دلیل بار زیاد یا تعمیرات موقتاً قادر به پاسخگویی نیست." },
+            { code: 504, name: "پایان مهلت درگاه (Gateway Timeout)", en: "Gateway Timeout", category: "5xx", desc: "سرور به عنوان پروکسی پاسخی به موقع از سرور بالادستی دریافت نکرده است." },
+            { code: 505, name: "نسخه HTTP پشتیبانی نمی‌شود", en: "HTTP Version Not Supported", category: "5xx", desc: "نسخه پروتکل HTTP استفاده شده در درخواست توسط سرور پشتیبانی نمی‌شود." },
+            { code: 506, name: "متغیر مذاکره می‌کند", en: "Variant Also Negotiates", category: "5xx", desc: "مذاکره محتوای شفاف برای درخواست منجر به ارجاع دایره‌ای شده است." },
+            { code: 507, name: "فضای ذخیره‌سازی ناکافی", en: "Insufficient Storage", category: "5xx", desc: "سرور قادر به ذخیره فضای مورد نیاز برای اتمام درخواست نیست." },
+            { code: 508, name: "حلقه شناسایی شد", en: "Loop Detected", category: "5xx", desc: "سرور حین پردازش درخواست با حلقه بی‌نهایت مواجه شد." },
+            { code: 510, name: "توسعه‌نیافته", en: "Not Extended", category: "5xx", desc: "برای تکمیل درخواست به توسعه‌های بیشتری روی پروتکل نیاز است." },
+            { code: 511, name: "نیاز به احراز هویت شبکه", en: "Network Authentication Required", category: "5xx", desc: "کلاینت برای دسترسی به شبکه باید احراز هویت انجام دهد." }
+        ];
+
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        const grid = document.getElementById('codesGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('#filterButtons button');
+        const emptyState = document.getElementById('emptyState');
+
+        function render() {
+            const filtered = codes.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.category === currentFilter;
+                const q = searchQuery.toLowerCase();
+                const matchesSearch = item.code.toString().includes(q) || 
+                                      item.name.toLowerCase().includes(q) ||
+                                      item.en.toLowerCase().includes(q) ||
+                                      item.desc.toLowerCase().includes(q);
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = filtered.map(item => `
+                <div class="backdrop-blur-md bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between hover:border-slate-700 transition-all shadow-lg hover:shadow-blue-500/5">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-2xl font-black text-white tracking-tight">${item.code}</span>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-md ${getBadgeColor(item.category)}">${item.category}</span>
+                        </div>
+                        <h3 class="text-md font-bold text-slate-100 mb-1">${item.name}</h3>
+                        <p class="text-xs text-slate-400 font-mono mb-3" dir="ltr">${item.en}</p>
+                        <p class="text-xs text-slate-300 leading-relaxed">${item.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getBadgeColor(cat) {
+            switch(cat) {
+                case '1xx': return 'bg-sky-500/10 text-sky-400 border border-sky-500/20';
+                case '2xx': return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                case '3xx': return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                case '4xx': return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                case '5xx': return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+                default: return 'bg-slate-800 text-slate-300';
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.trim();
+            render();
+        });
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30');
+                    b.classList.add('bg-slate-900/80', 'border', 'border-slate-800', 'text-slate-400');
+                });
+                btn.classList.remove('bg-slate-900/80', 'border', 'border-slate-800', 'text-slate-400');
+                btn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-600/30');
+
+                currentFilter = btn.dataset.filter;
+                render();
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>
