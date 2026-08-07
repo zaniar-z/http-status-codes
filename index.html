@@ -38,13 +38,13 @@
     <div class="max-w-6xl mx-auto px-4 py-12 relative z-10">
         <!-- Header -->
         <header class="mb-10 text-center">
-            <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2 drop-shadow-md">کدهای وضعیت HTTP</h1>
-            <p class="text-slate-300 max-w-xl mx-auto drop-shadow">مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی، از اطلاعاتی (1xx) تا خطاهای سرور (5xx).</p>
+            <h1 id="headerText" class="text-4xl font-extrabold tracking-tight text-white mb-2 drop-shadow-md">کدهای وضعیت HTTP</h1>
+            <p id="subText" class="text-slate-300 max-w-xl mx-auto drop-shadow">مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی، از اطلاعاتی (1xx) تا خطاهای سرور (5xx).</p>
         </header>
 
         <!-- Controls: Search & Filters -->
         <div class="flex flex-col md:flex-row gap-4 mb-8 justify-between items-center backdrop-blur-md bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 shadow-xl">
-            <!-- Search -->
+            <button id="langBtn" class="px-4 py-2 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700">EN / FA</button>
             <div class="w-full md:w-96 relative">
                 <input type="text" id="searchInput" placeholder="جستجو (مثل 429، درخواست زیاد...)" 
                     class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-right">
@@ -189,7 +189,23 @@
             { code: 511, name: "نیاز به احراز هویت شبکه", en: "Network Authentication Required", category: "5xx", desc: "کلاینت برای دسترسی به شبکه باید احراز هویت انجام دهد." }
         ];
 
-        let currentFilter = 'all';
+        const translations = {
+            fa: {
+                header: "کدهای وضعیت HTTP",
+                sub: "مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی.",
+                search: "جستجو (مثل 429، درخواست زیاد...)",
+                empty: "کد خطایی با این مشخصات پیدا نشد.",
+                filter: { all: "همه", "1xx": "۱xx (اطلاعاتی)", "2xx": "۲xx (موفقیت)", "3xx": "۳xx (تغییر مسیر)", "4xx": "۴xx (خطای کلاینت)", "5xx": "۵xx (خطای سرور)" }
+            },
+            en: {
+                header: "HTTP Status Codes",
+                sub: "A comprehensive reference of HTTP response codes.",
+                search: "Search (e.g. 429, too many requests...)",
+                empty: "No codes found.",
+                filter: { all: "All", "1xx": "1xx (Info)", "2xx": "2xx (Success)", "3xx": "3xx (Redirect)", "4xx": "4xx (Client Error)", "5xx": "5xx (Server Error)" }
+            }
+        };
+        let lang = 'fa';
         let searchQuery = '';
 
         const grid = document.getElementById('codesGrid');
@@ -198,6 +214,17 @@
         const emptyState = document.getElementById('emptyState');
 
         function render() {
+            const t = translations[lang];
+            document.getElementById('headerText').innerText = t.header;
+            document.getElementById('subText').innerText = t.sub;
+            searchInput.placeholder = t.search;
+            emptyState.innerText = t.empty;
+            
+            filterButtons.forEach(btn => {
+                const cat = btn.dataset.filter;
+                if(cat !== 'all') btn.innerText = t.filter[cat];
+            });
+
             const filtered = codes.filter(item => {
                 const matchesFilter = currentFilter === 'all' || item.category === currentFilter;
                 const q = searchQuery.toLowerCase();
@@ -258,6 +285,11 @@
                 currentFilter = btn.dataset.filter;
                 render();
             });
+        });
+
+        document.getElementById('langBtn').addEventListener('click', () => {
+            lang = lang === 'fa' ? 'en' : 'fa';
+            render();
         });
 
         render();
