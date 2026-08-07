@@ -44,7 +44,10 @@
 
         <!-- Controls: Search & Filters -->
         <div class="flex flex-col md:flex-row gap-4 mb-8 justify-between items-center backdrop-blur-md bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 shadow-xl">
-            <button id="langBtn" class="px-4 py-2 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700">EN / FA</button>
+            <select id="langSelect" class="px-4 py-2 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700">
+                <option value="fa">FA</option>
+                <option value="en">EN</option>
+            </select>
             <div class="w-full md:w-96 relative">
                 <input type="text" id="searchInput" placeholder="جستجو (مثل 429، درخواست زیاد...)" 
                     class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors text-right">
@@ -121,8 +124,8 @@
 
         // Data & Logic
         const codes = [
-            { code: 100, name: "ادامه دارد", en: "Continue", category: "1xx", desc: "سرور هدرهای درخواست را دریافت کرده و کلاینت باید ارسال بدنه درخواست را ادامه دهد." },
-            { code: 101, name: "تغییر پروتکل‌ها", en: "Switching Protocols", category: "1xx", desc: "درخواست‌کننده از سرور خواسته پروتکل را تغییر دهد و سرور تایید کرده است." },
+            { code: 100, name: "ادامه دارد", name_en: "Continue", en: "Continue", category: "1xx", desc: "سرور هدرهای درخواست را دریافت کرده و کلاینت باید ارسال بدنه درخواست را ادامه دهد.", desc_en: "The server has received the request headers and the client should proceed to send the request body." },
+            { code: 101, name: "تغییر پروتکل‌ها", name_en: "Switching Protocols", en: "Switching Protocols", category: "1xx", desc: "درخواست‌کننده از سرور خواسته پروتکل را تغییر دهد و سرور تایید کرده است.", desc_en: "The requester has asked the server to switch protocols and the server has agreed to do so." },
             { code: 102, name: "در حال پردازش", en: "Processing", category: "1xx", desc: "درخواست WebDAV ممکن است شامل عملیات زیادی باشد؛ یعنی سرور درخواست را دریافت کرده و پردازش می‌کند." },
             { code: 103, name: "راهنمایی‌های اولیه", en: "Early Hints", category: "1xx", desc: "برای بازگرداندن برخی هدرهای پاسخ قبل از پیام نهایی HTTP استفاده می‌شود." },
 
@@ -195,14 +198,16 @@
                 sub: "مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی.",
                 search: "جستجو (مثل 429، درخواست زیاد...)",
                 empty: "کد خطایی با این مشخصات پیدا نشد.",
-                filter: { all: "همه", "1xx": "۱xx (اطلاعاتی)", "2xx": "۲xx (موفقیت)", "3xx": "۳xx (تغییر مسیر)", "4xx": "۴xx (خطای کلاینت)", "5xx": "۵xx (خطای سرور)" }
+                filter: { all: "همه", "1xx": "۱xx (اطلاعاتی)", "2xx": "۲xx (موفقیت)", "3xx": "۳xx (تغییر مسیر)", "4xx": "۴xx (خطای کلاینت)", "5xx": "۵xx (خطای سرور)" },
+                lang: "زبان: فارسی"
             },
             en: {
                 header: "HTTP Status Codes",
                 sub: "A comprehensive reference of HTTP response codes.",
                 search: "Search (e.g. 429, too many requests...)",
                 empty: "No codes found.",
-                filter: { all: "All", "1xx": "1xx (Info)", "2xx": "2xx (Success)", "3xx": "3xx (Redirect)", "4xx": "4xx (Client Error)", "5xx": "5xx (Server Error)" }
+                filter: { all: "All", "1xx": "1xx (Info)", "2xx": "2xx (Success)", "3xx": "3xx (Redirect)", "4xx": "4xx (Client Error)", "5xx": "5xx (Server Error)" },
+                lang: "Language: English"
             }
         };
         let lang = 'fa';
@@ -225,7 +230,11 @@
                 if(cat !== 'all') btn.innerText = t.filter[cat];
             });
 
-            const filtered = codes.filter(item => {
+            const filtered = codes.map(item => ({
+                ...item,
+                name: lang === 'fa' ? item.name : item.name_en || item.en,
+                desc: lang === 'fa' ? item.desc : item.desc_en || item.desc
+            })).filter(item => {
                 const matchesFilter = currentFilter === 'all' || item.category === currentFilter;
                 const q = searchQuery.toLowerCase();
                 const matchesSearch = item.code.toString().includes(q) || 
@@ -287,8 +296,8 @@
             });
         });
 
-        document.getElementById('langBtn').addEventListener('click', () => {
-            lang = lang === 'fa' ? 'en' : 'fa';
+        document.getElementById('langSelect').addEventListener('change', (e) => {
+            lang = e.target.value;
             render();
         });
 
