@@ -1,0 +1,16 @@
+{
+  "fa": {
+    "header": "کدهای وضعیت HTTP",
+    "sub": "مرجع جامع کدهای پاسخ پروتکل HTTP به همراه توضیح فارسی.",
+    "search": "جستجو (مثل 429، درخواست زیاد...)",
+    "empty": "کد خطایی با این مشخصات پیدا نشد.",
+    "filter": { "all": "همه", "1xx": "۱xx (اطلاعاتی)", "2xx": "۲xx (موفقیت)", "3xx": "۳xx (تغییر مسیر)", "4xx": "۴xx (خطای کلاینت)", "5xx": "۵xx (خطای سرور)" }
+  },
+  "en": {
+    "header": "HTTP Status Codes",
+    "sub": "A comprehensive reference of HTTP response codes.",
+    "search": "Search (e.g. 429, too many requests...)",
+    "empty": "No codes found.",
+    "filter": { "all": "All", "1xx": "1xx (Info)", "2xx": "2xx (Success)", "3xx": "3xx (Redirect)", "4xx": "4xx (Client Error)", "5xx": "5xx (Server Error)" }
+  }
+}
