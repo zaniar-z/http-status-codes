@@ -218,6 +218,9 @@
         const filterButtons = document.querySelectorAll('#filterButtons button');
         const emptyState = document.getElementById('emptyState');
 
+        // Explicitly set default active filter on boot
+        let currentFilter = 'all';
+
         function render() {
             const t = translations[lang];
             document.getElementById('headerText').innerText = t.header;
