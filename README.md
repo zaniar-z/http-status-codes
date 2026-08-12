@@ -12,6 +12,8 @@ https://zaniar-z.github.io/http-status-codes/
 
 Open `index.html` directly in your browser — no install or build step needed.
 
+> Note: keep the `locales/` folder next to `index.html` (same directory). The page loads translations via `fetch('locales/<lang>.json')`; if the folder is missing or renamed, the language switch breaks.
+
 ## Features
 
 - Fast search & filtering of status codes
@@ -47,6 +49,8 @@ https://zaniar-z.github.io/http-status-codes/
 ### لوکال
 
 فایل `index.html` را مستقیماً در مرورگر باز کنید — نیاز به نصب یا build نیست.
+
+> نکته: پوشه `locales/` را کنار `index.html` (در همان پوشه) نگه دارید. صفحه ترجمه‌ها را با `fetch('locales/<lang>.json')` بارگذاری می‌کند؛ اگر پوشه نباشد یا تغییر نام بدهد، سوییچ زبان از کار می‌افتد.
 
 ## امکانات
 
